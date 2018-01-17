@@ -1,8 +1,8 @@
-1)git log
-2)git status
-3)git reset --hard HEAD^：版本回退至上个版本
-4)git checkout -- file：丢弃工作区修改，回到上个add/commit
-5)git reset HEAD file：撤销暂存区修改
-6)git rm -- file：修改文件（注意要commit）
-7)git push origin master：将本地分支的最新修改推送至github
-8)git pull：通过远程仓库来更新自己的文件
+1) git log
+2) git status
+3) git reset --hard HEAD^：版本回退至上个版本
+4) git checkout -- file：丢弃工作区修改，回到上个add/commit
+5) git reset HEAD file：撤销暂存区修改
+6) git rm -- file：修改文件（注意要commit）
+7) git push origin master：将本地分支的最新修改推送至github
+8) git pull：通过远程仓库来更新自己的文件
