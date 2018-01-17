@@ -6,3 +6,4 @@
 6) git rm -- file：修改文件（注意要commit）
 7) git push origin master：将本地分支的最新修改推送至github
 8) git pull：通过远程仓库来更新自己的文件
+9) git reflog：记录你的命令历史
