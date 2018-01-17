@@ -1,0 +1,8 @@
+1,git pull：通过远程仓库来更新自己的文件
+2,git log
+3,git status
+4,git reset --hard HEAD^：版本回退至上个版本
+5,git checkout -- file：丢弃工作区修改，回到上个add/commit
+6,git reset HEAD file：撤销暂存区修改
+7,git rm -- file：修改文件（注意要commit）
+8,git push origin master：将本地分支的最新修改推送至github
