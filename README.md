@@ -9,7 +9,8 @@ KongMing Chess
 这个项目采用了最常见的英式棋盘（如下图所示）并给出了对于棋盘坐标的定义。所有的棋子摆放在交叉点上。**注意**英式棋盘的四个角上是不允许棋子走入的。
 
 ![image](https://github.com/shsjxzh/KongMing-Chess/blob/master/picture/board.jpg)
-    
+
+这里提供一个在线孔明棋游戏的地址：[孔明棋游戏](http://www.4399.com/flash/86377_4.htm)
 **如果你有好的想法，Just pull it!**:grin:
 
 # Input Format:
