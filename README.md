@@ -10,12 +10,12 @@ KongMing Chess
 
 ![image](https://github.com/shsjxzh/KongMing-Chess/blob/master/picture/board.jpg)
     
-如果你有好的想法，**Just pull it!**
+**如果你有好的想法，Just pull it!**
 
 # Input Format:
     一个7*7的01矩阵，1和0分别表示在棋盘的这个位置上有还是没有棋子。
 # Ouput Format:
-    每次如何移动棋子。其基本格式为(x1,y1)->(x2,y2)，表示在图二所示的坐标中，(x1,y1)位置的棋子移动到了位置(x2,y2)
+    每次如何移动棋子。每一步的基本格式为(x1,y1)->(x2,y2)，表示在图二所示的坐标中，(x1,y1)位置的棋子移动到了位置(x2,y2)
 # Sample input:
     0 0 0 0 0 0 0
     0 0 0 1 0 0 0
