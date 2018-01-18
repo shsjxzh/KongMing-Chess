@@ -10,7 +10,7 @@ KongMing Chess
 
 ![image](https://github.com/shsjxzh/KongMing-Chess/blob/master/picture/board.jpg)
 
-这里提供一个在线孔明棋游戏的地址：[孔明棋游戏](http://www.4399.com/flash/86377_4.htm)
+这里提供一个在线孔明棋游戏的地址：[孔明棋游戏](http://www.4399.com/flash/86377_4.htm)。
 **如果你有好的想法，Just pull it!**:grin:
 
 # Input Format:
