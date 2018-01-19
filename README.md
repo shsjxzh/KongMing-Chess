@@ -35,3 +35,10 @@ KongMing Chess
     (3 ,5)->(3 ,3)
     (4 ,3)->(2 ,3)
     (1 ,3)->(3 ,3)
+    
+## 目前的想法：
+如果棋盘上的棋子非常多，那么暴力搜索算法就会非常吃力。这里所写的程序采用了模拟退火算法，但目前效果还不是很好。
+
+## 参考文献：
+[独粒钻石棋的化学反应优化解法](https://github.com/shsjxzh/KongMing-Chess/blob/master/%E7%8B%AC%E7%B2%92%E9%92%BB%E7%9F%B3%E6%A3%8B%E7%9A%84%E5%8C%96%E5%AD%A6%E5%8F%8D%E5%BA%94%E4%BC%98%E5%8C%96%E8%A7%A3%E6%B3%95.pdf)
+[手把手教会你模拟退火算法](http://www.cnblogs.com/CsOH/p/6049117.html)
