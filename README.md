@@ -10,8 +10,7 @@ KongMing Chess
 
 ![image](https://github.com/shsjxzh/KongMing-Chess/blob/master/picture/board.jpg)
 
-这里提供一个在线孔明棋游戏的地址：[孔明棋游戏](http://www.4399.com/flash/86377_4.htm)<br>
-**如果你有好的想法，Just pull it!**:grin:
+**如果你有好的的想法，Just pull it!**:grin:
 
 ## Input Format:
     一个7*7的01矩阵，1和0分别表示在棋盘的这个位置上有还是没有棋子。更多测试样例可以在本项目test_case文件夹中找到。
@@ -42,3 +41,7 @@ KongMing Chess
 ## 参考文献：
 [独粒钻石棋的化学反应优化解法](https://github.com/shsjxzh/KongMing-Chess/blob/master/%E7%8B%AC%E7%B2%92%E9%92%BB%E7%9F%B3%E6%A3%8B%E7%9A%84%E5%8C%96%E5%AD%A6%E5%8F%8D%E5%BA%94%E4%BC%98%E5%8C%96%E8%A7%A3%E6%B3%95.pdf) <br>
 [手把手教会你模拟退火算法](http://www.cnblogs.com/CsOH/p/6049117.html)
+
+## 孔明棋游戏：
+这里提供一个孔明棋游戏的链接，方便大家直观感受这个游戏：<br>
+[孔明棋游戏](http://www.4399.com/flash/86377_4.htm)
