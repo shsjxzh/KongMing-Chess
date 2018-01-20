@@ -82,9 +82,8 @@ int work()
 	int board[7][7] = { 0 };
 
 	//判断什么时候停下
-	bool flag = false;
-	//for (int k = 1; k < mem_of_chess; ++k) {
-	while (true) {
+	//bool flag = false;
+	for (int k = 1; k < mem_of_chess; ++k) {
 		for (itr = map_state[work_on].begin(); itr != map_state[work_on].end(); ++itr) {
 			//刷新棋盘
 			ull hash_board = itr->first;
@@ -116,10 +115,10 @@ int work()
 
 									//存储新的情况。
 									map_state[stor].insert(pair<ull, vector<char>>(hash_num, tmp));
-									if (hash_num == (ull(1) << wei_log2[3][3])) {
+									/*if (hash_num == (ull(1) << wei_log2[3][3])) {
 										flag = true;
 										break;
-									}
+									}*/
 
 									//undo the operation
 									tmp.pop_back(); tmp.pop_back();
@@ -131,17 +130,17 @@ int work()
 				}
 			}
 			
-			if (flag) break;
+			//if (flag) break;
 		}
 
-		if (flag) break;
+		//if (flag) break;
 		//清空map以节省内存
 		map_state[work_on].clear();
 		//确定每次的工作map和用来存结果的map
-		std::swap(work_on, stor);
+		swap(work_on, stor);
 	}
 
-	return stor;
+	return work_on;
 }
 
 void output(int loca)
@@ -163,6 +162,7 @@ int main()
 	
 	output(loca);
  	
+	system("pause");
 	return 0;
 }
 
