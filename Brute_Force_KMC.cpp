@@ -204,16 +204,9 @@ int work()
 									//do sth
 									new_board_num = board_num - (ull(1) << wei_log2[i][j]) - (ull(1) << wei_log2[(i + xx) >> 1][(j + yy) >> 1]) + (ull(1) << wei_log2[xx][yy]);
 									new_hash_num = hash_produce(new_board_num);
-									//tmp.push_back((i << 5) + (j << 2) + dir); //tmp.push_back(char(7 * xx + yy));
 
 									//存储新的情况。
 									map_state[k + 1].insert(pair<ull, node>(new_hash_num, node(new_board_num, ((i << 5) + (j << 2) + dir), itr)));
-									/*if (hash_num == (ull(1) << wei_log2[3][3])) {
-										flag = true;
-										break;
-									}*/
-									//undo the operation
-									//tmp.pop_back(); //tmp.pop_back();
 								}
 							}
 						}
