@@ -6,27 +6,54 @@
 using namespace std;
 
 typedef unsigned long long ull;
-
+typedef unsigned char uc;
+//typedef map<ull, node> MAP;
 //存储初始棋盘情况
 int mem_of_chess = 0;
 
 //用来存储棋盘上每个点权值对2取对数
+//需要继续修改权值
 const int wei_log2[7][7] = {
-	{ 0,1,2,3,4,5,6 },
-	{ 7,8,9,10,11,12,13 },
-	{ 14,15,16,17,18,19,20 },
-	{ 21,22,23,24,25,26,27 },
-	{ 28,29,30,31,32,33,34 },
-	{ 35,36,37,38,39,40,41 },
-	{ 42,43,44,45,46,47,48 }
+	{  0, 0,25,27,23, 0, 0 },
+	{  0, 0,24,26,22, 0, 0 },
+	{ 16,15,31,21,30,10,11 },
+	{ 20,19,14,32, 7,12,13 },
+	{ 18,17,28, 0,29, 8, 9 },
+	{  0, 0, 1, 5, 3, 0, 0 },
+	{  0, 0, 2, 6, 4, 0, 0 }
 };
+
+//在计算hash的时候方便
+//上、左、右、下：0，1，2，3
+const int UP = 0;
+const int LEFT = 1;
+const int RIGHT = 2;
+const int DOWN = 3;
+
+const int MID = 0;
+const int L_UP = 1;
+const int R_UP = 2;
+const int R_DOWN = 3;
+const int L_DOWN = 4;
+
 
 //移动方式
 const int dx[4] = { -2,2,0,0 };
 const int dy[4] = { 0,0,-2,2 };
 
+struct node;
+
+map<ull, node> map_state[32];
+
+struct node {
+	//这里也改
+	ull board_num;  //用一个数记录具体的棋盘情况
+	uc step;
+	map<ull, node>::iterator pre;
+	node(ull _b = 0, uc _s = 255, map<ull, node>::iterator _pre = map_state[0].end()) :board_num(_b), step(_s), pre(_pre) { ; }
+};
+
 //放置用于迭代的可能状态
-map<ull,vector<char>> map_state[2];
 
 inline bool valid(int x, int y)
 {
@@ -38,21 +65,82 @@ inline bool can_move(int x,int y,int xx,int yy, int board[][7])
 	return board[x][y] && board[(x + xx) >> 1][(y + yy) >> 1] && !board[xx][yy];
 }
 
-ull hash_produce(int board[][7])
+inline bool sym(int x)
 {
-	ull hash_ans = 0;
-	for (int i = 0; i < 7; ++i) {
-		for (int j = 0; j < 7; ++j) {
-			if (valid(i, j)) {
-				hash_ans += ((ull)board[i][j] << wei_log2[i][j]);
-			}
+	return ((x >> 1) & 0x3) == ((x >> 3) & 0x3);
+}
+
+ull hash_produce(ull hash_ans)
+{
+	//ull hash_ans = hash_boar;
+	
+	//进制转换为可能出问题的地方
+	int block[4];  //存大的块
+	for (int i = 0; i < 4; ++i) {
+		//上、左、右、下：0，1，2，3
+		block[i] = (hash_ans >> (7 * (3 - i))) & 0x7f;
+	}
+
+	int piece[5];  //存小的块
+	for (int i = 0; i < 5; ++i) {
+		//中、左上、右上、右下、左下
+		piece[i] = (hash_ans >> (32 - i)) & 1;
+	}
+
+	int min = block[0];
+	int min_loca = 0;
+	for (int i = 1; i < 4; ++i) {
+		if (block[i] < min) {
+			min = block[i];
+			min_loca = i;
 		}
+	}
+	
+	int tmp;
+	switch (min_loca)
+	{
+	case UP:break;
+	case LEFT:
+		//blocks
+		tmp = block[LEFT];//左
+		block[LEFT] = block[DOWN]; block[DOWN] = block[RIGHT]; block[RIGHT] = block[UP]; block[UP] = tmp;
+		//pieces
+		tmp = piece[L_UP];
+		piece[L_UP] = piece[L_DOWN]; piece[L_DOWN] = piece[R_DOWN]; piece[R_DOWN] = piece[R_UP]; piece[R_UP] = tmp;
+		break;
+	case RIGHT:
+		tmp = block[LEFT];//左
+		block[LEFT] = block[UP]; block[UP] = block[RIGHT]; block[RIGHT] = block[DOWN]; block[DOWN] = tmp;
+		tmp = piece[L_UP];
+		piece[L_UP] = piece[R_UP]; piece[R_UP] = piece[R_DOWN]; piece[R_DOWN] = piece[L_DOWN]; piece[L_DOWN] = tmp;
+		break;
+	case DOWN:
+		swap(block[UP], block[DOWN]);
+		swap(block[LEFT], block[RIGHT]);
+		swap(piece[L_UP], piece[R_DOWN]);
+		swap(piece[L_DOWN], piece[R_UP]);
+		break;
+	}
+
+	if (sym(block[UP]) && sym(block[DOWN]) && block[LEFT] > block[RIGHT]) {
+		swap(block[LEFT], block[RIGHT]);
+		swap(piece[L_UP], piece[R_UP]);
+		swap(piece[L_DOWN], piece[R_DOWN]);
+	}
+
+	hash_ans = 0;
+	for (int i = 0; i < 5; ++i) {
+		hash_ans |= (ull)piece[i] << (32 - i);
+	}
+	for (int i = 0; i < 4; ++i) {
+		hash_ans |= (ull)block[i] << (7 * (3 - i));
 	}
 	return hash_ans;
 }
 
 void input()
 {
+	//从这里开始改
 	ull chess;
 	ull board_condition = 0;
 	cout << "孔明棋解法生成器：" << "\n";
@@ -60,45 +148,50 @@ void input()
 		for (int j = 0; j < 7; ++j) {
 			cin >> chess;
 			if (valid(i, j)) {
-				board_condition += (chess << wei_log2[i][j]);
+				board_condition |= (chess << wei_log2[i][j]);
 				if (chess) {
 					++mem_of_chess;
 				}
 			}
 		}
 	}
-	vector<char> ept;
-	map_state[0][board_condition] = ept ;
+	ull hash_initial = hash_produce(board_condition);
+	map_state[0][hash_initial] = node(board_condition, uc(255), map_state[0].end());
 }
 
 int work()
 {
 	//这是用来确定哪个map是正在工作的，哪个是要往里存数据的
-	int work_on = 0;
-	int stor = 1;
+	//int work_on = 0;
+	//int stor = 1;
 	//遍历map用到的迭代器
-	map<ull, vector<char>>::iterator itr;
+	map<ull, node>::iterator itr;
 	//记录解码以后的棋盘情况
 	int board[7][7] = { 0 };
 
 	//判断什么时候停下
 	//bool flag = false;
-	for (int k = 1; k < mem_of_chess; ++k) {
-		for (itr = map_state[work_on].begin(); itr != map_state[work_on].end(); ++itr) {
+	int k;
+	for (k = 0; k < mem_of_chess - 1; ++k) {
+		cout << "k = " << k << ";\n";
+		for (itr = map_state[k].begin(); itr != map_state[k].end(); ++itr) {
 			//刷新棋盘
-			ull hash_board = itr->first;
+			ull board_num = (itr->second).board_num;
+			//改到这里
 			for (int i = 0; i < 7; ++i) {
 				for (int j = 0; j < 7; ++j) {
 					if (valid(i, j)) {
-						board[i][j] = int((hash_board >> wei_log2[i][j]) & (ull)1);
+						board[i][j] = int((board_num >> wei_log2[i][j]) & (ull)1);
 					}
 				}
 			}
 
+			ull hash_board = itr->first;
 			//开始枚举情况
-			vector<char> tmp = itr->second;
+			//vector<char> tmp = itr->second;
 			int xx, yy;
-			ull hash_num;
+			ull new_board_num;
+			ull new_hash_num;
 			for (int i = 0; i < 7; ++i) {
 				for (int j = 0; j < 7; ++j) {
 					if (valid(i, j)) {
@@ -109,20 +202,18 @@ int work()
 							if (valid(xx, yy)) {
 								if (can_move(i, j, xx, yy, board)) {
 									//do sth
-									board[i][j] = 0; board[(i + xx) >> 1][(j + yy) >> 1] = 0; board[xx][yy] = 1;
-									hash_num = hash_produce(board);
-									tmp.push_back(char(7 * i + j)); tmp.push_back(char(7 * xx + yy));
+									new_board_num = board_num - (ull(1) << wei_log2[i][j]) - (ull(1) << wei_log2[(i + xx) >> 1][(j + yy) >> 1]) + (ull(1) << wei_log2[xx][yy]);
+									new_hash_num = hash_produce(new_board_num);
+									//tmp.push_back((i << 5) + (j << 2) + dir); //tmp.push_back(char(7 * xx + yy));
 
 									//存储新的情况。
-									map_state[stor].insert(pair<ull, vector<char>>(hash_num, tmp));
+									map_state[k + 1].insert(pair<ull, node>(new_hash_num, node(new_board_num, ((i << 5) + (j << 2) + dir), itr)));
 									/*if (hash_num == (ull(1) << wei_log2[3][3])) {
 										flag = true;
 										break;
 									}*/
-
 									//undo the operation
-									tmp.pop_back(); tmp.pop_back();
-									board[i][j] = 1; board[(i + xx) >> 1][(j + yy) >> 1] = 1; board[xx][yy] = 0;
+									//tmp.pop_back(); //tmp.pop_back();
 								}
 							}
 						}
@@ -135,23 +226,44 @@ int work()
 
 		//if (flag) break;
 		//清空map以节省内存
-		map_state[work_on].clear();
+		//map_state[work_on].clear();
 		//确定每次的工作map和用来存结果的map
-		swap(work_on, stor);
+		//swap(work_on, stor);
 	}
 
-	return work_on;
+	return k;
 }
 
+void Forward_out(map<ull, node>::iterator out)
+{
+	if ((*out).second.step == 255) {
+		return;
+	}
+	else {
+		Forward_out((*out).second.pre);
+		
+		
+		int x, y, dir;
+		x = (((*out).second.step) >> 5) & 0x7;
+		y = (((*out).second.step) >> 2) & 0x7;
+		dir = (((*out).second.step)) & 0x3;
+		cout << "(" << x << "," << y << ")"
+			<< "->(" << x + dx[dir] << "," << y + dy[dir] << ")\n";
+	}
+}
 void output(int loca)
 {
-	vector<char> out = map_state[loca].find((ull)1 << wei_log2[3][3])->second;
-	vector<char>::iterator itr = out.begin();
-	for (; itr != out.end(); itr += 2) {
-		cout << "(" << *itr / 7 << "," << *itr % 7 << ")"
-			<< "->(" << *(itr + 1) / 7 << "," << *(itr + 1) % 7 << ")\n";
-	}
-
+	map<ull, node>::iterator out = map_state[loca].find((ull)1 << wei_log2[3][3]);
+	//vector<char>::iterator itr = out.begin();
+	/*int x, y, dir;
+	for (; itr != out.end(); ++itr) {
+		x = (*itr >> 5) & 0x7;
+		y = (*itr >> 2) & 0x7;
+		dir = (*itr) & 0x3;
+		cout << "(" << x << "," << y << ")"
+			<< "->(" << x + dx[dir] << "," << y + dy[dir] << ")\n";
+	}*/
+	Forward_out(out);
 }
 
 int main()
