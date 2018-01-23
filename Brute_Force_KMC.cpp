@@ -1,8 +1,7 @@
 #include <iostream>
 #include <map>
-#include <vector>
 #include <algorithm>
-#include <utility>
+//#include <utility>
 using namespace std;
 
 typedef unsigned long long ull;
@@ -10,6 +9,9 @@ typedef unsigned char uc;
 //typedef map<ull, node> MAP;
 //存储初始棋盘情况
 int mem_of_chess = 0;
+
+//调试用
+//int node_count = 0;
 
 //用来存储棋盘上每个点权值对2取对数
 //需要继续修改权值
@@ -41,17 +43,21 @@ const int L_DOWN = 4;
 const int dx[4] = { -2,2,0,0 };
 const int dy[4] = { 0,0,-2,2 };
 
-struct node;
-
-map<ull, node> map_state[32];
+struct step {
+	//这里也改
+	step* pre;	   //前一步
+	uc context;    //每一步的具体内容
+	uc nxt_count;   //保存还剩多少个分支
+	step(uc _con = 255, uc _nxt_count = 0, step* _pre = NULL) :context(_con), nxt_count(_nxt_count), pre(_pre) { ; }
+};
 
 struct node {
-	//这里也改
 	ull board_num;  //用一个数记录具体的棋盘情况
-	uc step;
-	map<ull, node>::iterator pre;
-	node(ull _b = 0, uc _s = 255, map<ull, node>::iterator _pre = map_state[0].end()) :board_num(_b), step(_s), pre(_pre) { ; }
+	step* this_step;     //用来记录步骤
+	node(ull _b = 0, step* _this = NULL) :board_num(_b), this_step(_this) { ; }
 };
+
+map<ull, node> map_state[2];
 
 //放置用于迭代的可能状态
 
@@ -156,106 +162,153 @@ void input()
 		}
 	}
 	ull hash_initial = hash_produce(board_condition);
-	map_state[0][hash_initial] = node(board_condition, uc(255), map_state[0].end());
+	step* tmp = new step(255, 0, NULL);
+	map_state[0][hash_initial] = node(board_condition, tmp);
+}
+
+void Del(step* aim)
+{
+	//delete aim;
+	if (aim->pre != NULL) {
+		--aim->pre->nxt_count;
+		if (aim->pre->nxt_count == 0) {
+			Del(aim->pre);
+		}
+	}
+	delete aim;
 }
 
 int work()
 {
 	//这是用来确定哪个map是正在工作的，哪个是要往里存数据的
-	//int work_on = 0;
-	//int stor = 1;
+	int work_on = 0;
+	int stor = 1;
 	//遍历map用到的迭代器
 	map<ull, node>::iterator itr;
+	map<ull, node>::iterator itr2;
 	//记录解码以后的棋盘情况
 	int board[7][7] = { 0 };
 
 	//判断什么时候停下
 	//bool flag = false;
 	int k;
+	bool change_state = false;
 	for (k = 0; k < mem_of_chess - 1; ++k) {
 		cout << "k = " << k << ";\n";
-		for (itr = map_state[k].begin(); itr != map_state[k].end(); ++itr) {
-			//刷新棋盘
-			ull board_num = (itr->second).board_num;
-			//改到这里
-			for (int i = 0; i < 7; ++i) {
-				for (int j = 0; j < 7; ++j) {
-					if (valid(i, j)) {
-						board[i][j] = int((board_num >> wei_log2[i][j]) & (ull)1);
-					}
-				}
+		
+		for (itr = map_state[work_on].begin(); itr != map_state[work_on].end(); ++itr) {
+
+			if (change_state) {
+				//此时已经找到答案，进入回收内存的阶段
+				Del((itr->second).this_step);
 			}
-
-			ull hash_board = itr->first;
-			//开始枚举情况
-			//vector<char> tmp = itr->second;
-			int xx, yy;
-			ull new_board_num;
-			ull new_hash_num;
-			for (int i = 0; i < 7; ++i) {
-				for (int j = 0; j < 7; ++j) {
-					if (valid(i, j)) {
-						for (int dir = 0; dir < 4; ++dir) {
-							xx = i + dx[dir];
-							yy = j + dy[dir];
-
-							if (valid(xx, yy)) {
-								if (can_move(i, j, xx, yy, board)) {
-									//do sth
-									new_board_num = board_num - (ull(1) << wei_log2[i][j]) - (ull(1) << wei_log2[(i + xx) >> 1][(j + yy) >> 1]) + (ull(1) << wei_log2[xx][yy]);
-									new_hash_num = hash_produce(new_board_num);
-
-									//存储新的情况。
-									map_state[k + 1].insert(pair<ull, node>(new_hash_num, node(new_board_num, ((i << 5) + (j << 2) + dir), itr)));
-								}
-							}
+			else {
+				//刷新棋盘
+				ull board_num = (itr->second).board_num;
+				for (int i = 0; i < 7; ++i) {
+					for (int j = 0; j < 7; ++j) {
+						if (valid(i, j)) {
+							board[i][j] = int((board_num >> wei_log2[i][j]) & (ull)1);
 						}
 					}
 				}
+
+				//该节点的地址
+				step* origin = (itr->second).this_step;
+				//开始枚举情况
+				int xx, yy;
+				ull new_board_num;
+				ull new_hash_num;
+				//用于删除
+				bool use_flag = false;
+				//用于防止内存泄漏
+				bool stop_flag = false;
+				for (int i = 0; i < 7; ++i) {
+					for (int j = 0; j < 7; ++j) {
+						//检查是否真的用到这一路径
+						if (valid(i, j)) {
+							for (int dir = 0; dir < 4; ++dir) {
+								xx = i + dx[dir];
+								yy = j + dy[dir];
+
+								if (valid(xx, yy)) {
+									if (can_move(i, j, xx, yy, board)) {
+										//do sth
+										new_board_num = board_num - (ull(1) << wei_log2[i][j]) - (ull(1) << wei_log2[(i + xx) >> 1][(j + yy) >> 1]) + (ull(1) << wei_log2[xx][yy]);
+										new_hash_num = hash_produce(new_board_num);
+
+										//存储新的情况。
+										step* tmp = new step(((i << 5) + (j << 2) + dir), 0, origin);
+										bool success_insert = (map_state[stor].insert(pair<ull, node>(new_hash_num, node(new_board_num, tmp)))).second;
+										if (success_insert) {
+											use_flag = true;
+											++origin->nxt_count;
+
+											//当找到最后的答案之后，开始清理其余剩下的棋子
+											if (new_hash_num == ((ull)1 << wei_log2[3][3])) {
+												for (itr2 = map_state[stor].begin(); itr2 != map_state[stor].end(); ++itr2) {
+													if (itr2->first != ((ull)1 << wei_log2[3][3])) {
+														Del((itr2->second).this_step);
+													}
+												}
+												stop_flag = true;
+												change_state = true;
+												break;
+											}
+											if (stop_flag) break;
+										}
+										else {
+											delete tmp;
+										}
+									}
+								}
+							}
+							if (stop_flag) break;
+						}
+					}
+					if (stop_flag) break;
+				}
+				if (!use_flag) {
+					Del(origin);
+				}
+				//if (flag) break;
 			}
-			
-			//if (flag) break;
 		}
 
 		//if (flag) break;
 		//清空map以节省内存
-		//map_state[work_on].clear();
+		map_state[work_on].clear();
 		//确定每次的工作map和用来存结果的map
-		//swap(work_on, stor);
+		std::swap(work_on, stor);
 	}
 
-	return k;
+	//return k;
+	return work_on;
 }
 
-void Forward_out(map<ull, node>::iterator out)
+void Forward_out(step* out)
 {
-	if ((*out).second.step == 255) {
+	if (out->pre == NULL) {
+		delete out;
 		return;
 	}
+	//start here
 	else {
-		Forward_out((*out).second.pre);
-		
-		
+		Forward_out(out->pre);
 		int x, y, dir;
-		x = (((*out).second.step) >> 5) & 0x7;
-		y = (((*out).second.step) >> 2) & 0x7;
-		dir = (((*out).second.step)) & 0x3;
+		x = ((out->context) >> 5) & 0x7;
+		y = ((out->context) >> 2) & 0x7;
+		dir = ((out->context)) & 0x3;
 		cout << "(" << x << "," << y << ")"
 			<< "->(" << x + dx[dir] << "," << y + dy[dir] << ")\n";
+		delete out;
 	}
 }
+
 void output(int loca)
 {
-	map<ull, node>::iterator out = map_state[loca].find((ull)1 << wei_log2[3][3]);
-	//vector<char>::iterator itr = out.begin();
-	/*int x, y, dir;
-	for (; itr != out.end(); ++itr) {
-		x = (*itr >> 5) & 0x7;
-		y = (*itr >> 2) & 0x7;
-		dir = (*itr) & 0x3;
-		cout << "(" << x << "," << y << ")"
-			<< "->(" << x + dx[dir] << "," << y + dy[dir] << ")\n";
-	}*/
+	//map<ull, node>::iterator out = map_state[loca].find((ull)1 << wei_log2[3][3]);
+	step* out = (map_state[loca].find((ull)1 << wei_log2[3][3])->second).this_step;
 	Forward_out(out);
 }
 
@@ -270,8 +323,3 @@ int main()
 	system("pause");
 	return 0;
 }
-
-/*To Do:
-	can_move
-	hash
-*/
