@@ -255,7 +255,7 @@ int work()
 												change_state = true;
 												break;
 											}
-											if (stop_flag) break;
+											//if (stop_flag) break;
 										}
 										else {
 											delete tmp;
