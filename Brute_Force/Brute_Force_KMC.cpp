@@ -2,6 +2,8 @@
 #include <map>
 #include <algorithm>
 //#include <utility>
+#include<time.h> 
+#include<fstream>
 using namespace std;
 
 typedef unsigned long long ull;
@@ -150,9 +152,13 @@ void input()
 	ull chess;
 	ull board_condition = 0;
 	cout << "孔明棋解法生成器：" << "\n";
+	
+	ifstream in("test.txt");
+	
 	for (int i = 0; i < 7; ++i) {
 		for (int j = 0; j < 7; ++j) {
-			cin >> chess;
+			//cin >> chess;
+			in >> chess;
 			if (valid(i, j)) {
 				board_condition |= (chess << wei_log2[i][j]);
 				if (chess) {
@@ -161,6 +167,9 @@ void input()
 			}
 		}
 	}
+	
+	in.close();
+	
 	ull hash_initial = hash_produce(board_condition);
 	step* tmp = new step(255, 0, NULL);
 	map_state[0][hash_initial] = node(board_condition, tmp);
@@ -314,12 +323,17 @@ void output(int loca)
 
 int main()
 {
+	clock_t start_t, end_t;
+	start_t = clock();
 	input();
 
 	int loca = work();
 	
 	output(loca);
  	
+ 	end_t = clock();
+	cout << "Totle Time : " <<(double)(end_t - start_t) / CLOCKS_PER_SEC << "s\n";
+	
 	system("pause");
 	return 0;
 }
